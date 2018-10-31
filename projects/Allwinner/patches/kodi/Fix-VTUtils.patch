@@ -1,0 +1,29 @@
+From f96dd0a163cd1c334acb3e8c7aea936a347e9cf0 Mon Sep 17 00:00:00 2001
+From: Jonas Karlman <jonas@kwiboo.se>
+Date: Tue, 23 Oct 2018 20:11:30 +0200
+Subject: [PATCH] windowing/gbm: fix crash in VTUtils
+
+---
+ xbmc/windowing/gbm/VTUtils.cpp | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/xbmc/windowing/gbm/VTUtils.cpp b/xbmc/windowing/gbm/VTUtils.cpp
+index cd57f793fba0..a70f11e929dd 100644
+--- a/xbmc/windowing/gbm/VTUtils.cpp
++++ b/xbmc/windowing/gbm/VTUtils.cpp
+@@ -23,7 +23,14 @@ using namespace KODI::WINDOWING::GBM;
+ 
+ bool CVTUtils::OpenTTY()
+ {
+-  m_ttyDevice = ttyname(STDIN_FILENO);
++  char *ttyDevice = ttyname(STDIN_FILENO);
++  if (ttyDevice == nullptr)
++  {
++    CLog::Log(LOGWARNING, "CVTUtils::%s - failed to get tty name: %s", __FUNCTION__, strerror(errno));
++    return true;
++  }
++
++  m_ttyDevice = ttyDevice;
+ 
+   m_fd.attach(open(m_ttyDevice.c_str(), O_RDWR | O_CLOEXEC));
+   if (m_fd < 0)
